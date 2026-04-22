@@ -60,13 +60,6 @@ def main(lncrna_num, disease_num, epochCount, pro_ZR, pro_PM, alpha, batchSize,
     g_optimizer = torch.optim.AdamW(G.parameters(), lr=0.0005, betas=(0.5, 0.999), weight_decay=1e-5)
     scheduler_d = CosineAnnealingLR(d_optimizer, T_max=20, eta_min=1e-6)
     scheduler_g = CosineAnnealingLR(g_optimizer, T_max=20, eta_min=1e-6)
-    # # 优化器
-    # g_optimizer = RAdam(G.parameters(), lr=0.0005, weight_decay=1e-5)
-    # d_optimizer = RAdam(D.parameters(), lr=0.0005, weight_decay=1e-5)
-    #
-    # # 调度器
-    # scheduler_g = CosineAnnealingLR(g_optimizer, T_max=20, eta_min=1e-6)
-    # scheduler_d = ReduceLROnPlateau(d_optimizer, mode='max', factor=0.5, patience=5, verbose=True)
 
     Noise_LDA = adj(lncrna_num, disease_num, input_net).to(device)
     True_LDA  = adj(lncrna_num, disease_num, true_input_net).to(device)
@@ -151,7 +144,6 @@ def main(lncrna_num, disease_num, epochCount, pro_ZR, pro_PM, alpha, batchSize,
         auc  = roc_auc_score(labels, preds)
         p, r, _ = precision_recall_curve(labels, preds)
         aupr = metrics.auc(r, p)
-        # 衍生评估指标（对0.5进行二值化）
         from sklearn.metrics import accuracy_score, matthews_corrcoef, f1_score
         preds_binary = [1 if s >= 0.5 else 0 for s in preds]
         acc = accuracy_score(labels, preds_binary)
@@ -162,38 +154,29 @@ def main(lncrna_num, disease_num, epochCount, pro_ZR, pro_PM, alpha, batchSize,
 
         print(
             f"Epoch[{epoch}/{epochCount}] | AUC: {auc:.4f}, AUPR: {aupr:.4f}, ACC: {acc:.4f}, MCC: {mcc:.4f}, RECALL: {recall:.4f},F1: {f1:.4f},PRECISION: {precision:.4f}")
-        # ✅ 更新各项指标最大值（单独判断）
         if auc > best_auc:
             best_auc = auc
             best_auc_labels = labels
             best_auc_preds = preds
             best_precision = precision
+            best_aupr = aupr
+            best_acc = acc
+            best_mcc = mcc
+            best_f1 = f1
+            best_recall = recall
             torch.save(G, G_PATH)
             torch.save(D, D_PATH)
             early_stop_counter = 0
         else:
             early_stop_counter += 1
 
-        if aupr > best_aupr:
-            best_aupr = aupr
-        if acc > best_acc:
-            best_acc = acc
-        if mcc > best_mcc:
-            best_mcc = mcc
-        if f1 > best_f1:
-            best_f1 = f1
-        if recall > best_recall:
-            best_recall = recall
 
-        # ✅ 保留早停逻辑仍以 AUC 为核心
         if early_stop_counter >= patience:
             print(f"Early stopping at epoch {epoch}!")
             break
-#######################################################
 
         scheduler_d.step(auc)
         scheduler_g.step(auc)
 
 
-    # ✅ 最终返回的是每个指标的最优值（不一定同一 epoch）
     return best_auc, best_aupr, best_acc, best_mcc,best_recall, best_f1, best_precision, best_auc_labels, best_auc_preds
