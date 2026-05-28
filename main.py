@@ -8,8 +8,6 @@ from sklearn.metrics import accuracy_score, matthews_corrcoef
 from sklearn.metrics import f1_score, recall_score
 from Data.load_Dataset1 import dataset1
 from Data.load_Dataset2 import dataset2
-from Data.load_Dataset3 import dataset3
-from Data.load_Dataset4 import dataset4
 from hetero_graph import get_hetero_graph
 
 import warnings
