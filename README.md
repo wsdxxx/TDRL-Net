@@ -3,7 +3,7 @@ predict lncRNA-disease associations
 
 🛠️ Requirements & Environment
 
-This repository has been tested in a Conda environment on Windows/Linux with NVIDIA GPU acceleration (CUDA 12.1).
+This repository has been tested in a Conda environment on Windows with NVIDIA GPU acceleration (CUDA 12.1).
 
 Python:>= 3.9
 
