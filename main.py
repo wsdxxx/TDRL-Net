@@ -17,7 +17,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-# 设置随机种子
 def set_random_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -28,10 +27,7 @@ def set_random_seed(seed):
 
 
 if __name__ == '__main__':
-    # 自动生成一个随机种子并记录
-    current_seed = 52262 #D1 D2
-    # current_seed = 17927 #D3
-    # current_seed = random.randint(1, 99999)
+    current_seed = random.randint(1, 99999)
 
     print(f"🌱 当前随机种子为: {current_seed}")
 
@@ -40,14 +36,9 @@ if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epochs = 150  #
-    pro_ZR = 30#D1:30   D3:20
-    pro_PM = 70  #D1:70  D3:80
-    alpha = 0.1 #D1:0.1  D3:0.2
-    #0.05 Mean AUC: 0.8906, Mean AUPR: 0.9048, Mean ACC: 0.7417, Mean MCC: 0.5516, Mean Recall: 0.5033, Mean F1: 0.6592, Mean Precision: 0.9684
-    #0.1 Mean AUC: 0.8913, Mean AUPR: 0.9039, Mean ACC: 0.7391, Mean MCC: 0.5509, Mean Recall: 0.4919, Mean F1: 0.6524, Mean Precision: 0.9741
-    #0.2 Mean AUC: 0.8914, Mean AUPR: 0.9065, Mean ACC: 0.7359, Mean MCC: 0.5465, Mean Recall: 0.4844, Mean F1: 0.6463, Mean Precision: 0.9755
-    #0.3 Mean AUC: 0.8892, Mean AUPR: 0.9067, Mean ACC: 0.7385, Mean MCC: 0.5526, Mean Recall: 0.4882, Mean F1: 0.6498, Mean Precision: 0.9732
-    #10:90  20:80 30:70
+    pro_ZR = 30
+    pro_PM = 70 
+    alpha = 0.1 
     feat_shape = 64
     out_feat = 256
 
@@ -65,10 +56,7 @@ if __name__ == '__main__':
     lncrna_num, mirna_num, disease_num, lncrna_disease, mirna_disease, lncrna_mirna = dataset1()
 
     # lncrna_num, mirna_num, disease_num, lncrna_disease, mirna_disease, lncrna_mirna, lncRNA_name = dataset2()
-    # lncrna_num, mirna_num, disease_num, lncrna_disease, mirna_disease, lncrna_mirna = dataset3()
-    # lncrna_num, mirna_num, disease_num, lncrna_disease, mirna_disease, lncrna_mirna = dataset4()
 
-    # lncrna_feat = get_k_mer_feat.get_feature(lncRNA_name)
     lncrna_feat = torch.rand(lncrna_num, feat_shape).to(device)
     print(f"lncrna_num: {lncrna_num}, lncrna_feat shape: {lncrna_feat.shape}")
 
@@ -145,11 +133,6 @@ if __name__ == '__main__':
                                                                                         disease_feat)
         Noise_LMDN = Noise_LMDN.to(device)
         True_LMDN = True_LMDN.to(device)
-        # # 修改异构图构建调用
-        # Noise_LMDN, Noise_LMDN_h, True_LMDN, True_LMDN_h, meta_paths = get_hetero_graph(
-        #     input_net, true_input_net, lncrna_mirna, mirna_disease,
-        #     lncrna_feat, mirna_feat, disease_feat, input_disease_disease  # 传入D-D边
-        # )
         G = model.generator(disease_num, feat_shape, out_feat, meta_paths=meta_paths).to(device)
         D = model.discriminator(disease_num, feat_shape, out_feat).to(device)
         auc, aupr, acc, mcc,  recall,f1,precision,labels, preds= train.main(lncrna_num, disease_num, epochs, pro_ZR, pro_PM, alpha, batchSize,
@@ -184,7 +167,7 @@ if __name__ == '__main__':
         print('10_fold_mcc:{}'.format(MCC))
         print('10_fold_recall:{}'.format(RECALL))
         print('10_fold_f1:{}'.format(F1))
-        print('10_fold_precision:{}'.format(PRECISION))  # ✅ 新增打印
+        print('10_fold_precision:{}'.format(PRECISION))  
 
         print(
             'Mean AUC: {:.4f}, Mean AUPR: {:.4f}, Mean ACC: {:.4f}, Mean MCC: {:.4f}, '
@@ -195,7 +178,7 @@ if __name__ == '__main__':
                 sum(MCC) / len(MCC),
                 sum(RECALL) / len(RECALL),
                 sum(F1) / len(F1),
-                sum(PRECISION) / len(PRECISION)  # ✅ 新增 mean precision
+                sum(PRECISION) / len(PRECISION)  
             ))
 
     fold_metrics['average'] = {
@@ -205,7 +188,7 @@ if __name__ == '__main__':
         'mcc': sum(MCC) / len(MCC),
         'recall': sum(RECALL) / len(RECALL),
         'f1': sum(F1) / len(F1),
-        'precision': sum(PRECISION) / len(PRECISION)  # ✅ 新增
+        'precision': sum(PRECISION) / len(PRECISION) 
     }
 
     with open('results/10fold_metricsD311.json', 'w') as f:
